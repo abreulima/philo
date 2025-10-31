@@ -36,14 +36,15 @@ typedef enum e_status
 
 typedef struct s_settings
 {
-    int     num_philo;
-    int     time_to_die;
-    int     time_to_eat;
-    int     time_to_sleep;
-    int     num_required_meals;
-    int     all_threads_created;
-    long    started;
-}           t_settings;
+    int             num_philo;
+    int             time_to_die;
+    int             time_to_eat;
+    int             time_to_sleep;
+    int             num_required_meals;
+    int             all_threads_created;
+    pthread_mutex_t printf_mutex;
+    long            started;
+}                   t_settings;
 
 typedef struct s_data
 {
@@ -162,7 +163,9 @@ void eating (t_philo *philo)
     better_usleep(philo->settings->time_to_eat);
     if (philo->settings->num_required_meals > 0 &&
         philo->meals_eaten == philo->settings->num_required_meals)
-    philo->status = FULL;
+        philo->status = FULL;
+    pthread_mutex_unlock(&philo->right_hand->mutex);
+    pthread_mutex_unlock(&philo->left_hand->mutex);
 }
 
 void sleeping(t_philo *philo)
