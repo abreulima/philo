@@ -202,7 +202,8 @@ void sleeping(t_philo *philo)
 
 void thinking(t_philo *philo)
 {
-
+    philo->status = THINKING;
+    write_log(philo);
 }
 
 void *start_philo(void *arg)
@@ -261,7 +262,7 @@ int main()
     t_philo     *philos;
     t_fork      *forks;
 
-    settings = set_settings(5, 100, 100, 10000, -1);
+    settings = set_settings(5, 100, 1000000, 500, -1);
     forks = create_forks(&settings);
     if (!forks)
     {

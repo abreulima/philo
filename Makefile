@@ -1,7 +1,7 @@
 NAME    := philo
 CC      := cc
 CFLAGS	:=
-CLIBS	:= -lpthread
+CLIBS	:= 
 CFILES	:= philo.c
 OBJS	:= $(CFILES:.c=.o)
 
@@ -13,11 +13,16 @@ $(NAME): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) $(CLIBS) -c $(CFILES)
 
-run:
-	./philo
 
 clean:
 	rm $(NAME)
 
 fclean: clean
 	rm $(OBJS)
+
+
+re: fclean all
+	
+run:
+	./philo
+
