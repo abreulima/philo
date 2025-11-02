@@ -31,7 +31,8 @@ typedef enum e_status
     THINKING,
     SLEEPING,
     DEAD,
-    FULL
+    FULL,
+    HAS_FORK,
 }   t_status;
 
 typedef struct s_settings
@@ -93,6 +94,8 @@ int modulo(int x, int N)
     return (x % N + N) % N;
 }
 
+
+
 t_philo *create_philo(t_settings *set, t_fork *forks)
 {
     t_philo *philos;
@@ -141,6 +144,26 @@ long get_current_time()
     return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
+void write_log(t_philo *philo)
+{
+    long elapse;
+
+    elapse = get_current_time() - philo->settings->started;
+    if (philo->status == FULL)
+        return ;
+    pthread_mutex_lock(&philo->settings->printf_mutex);
+    if (philo->status == EATING)
+        printf("%ld %d is eating\n", elapse, philo->id);
+    else if (philo->status == HAS_FORK)
+        printf("%ld %d has taken a fork\n", elapse, philo->id);
+    else if (philo->status == SLEEPING)
+        printf("%ld %d is sleeping\n", elapse, philo->id);
+    else if (philo->status == THINKING)
+        printf("%ld %d is thinking\n", elapse, philo->id);
+    else if (philo->status == DEAD)
+        printf("%ld %d died\n", elapse, philo->id);
+}
+
 void better_usleep(long milis)
 {
     long now;
@@ -153,11 +176,13 @@ void better_usleep(long milis)
 void eating (t_philo *philo)
 {
     pthread_mutex_lock(&philo->left_hand->mutex);
-    printf("Philo %d took Left Hand Fork %d\n", philo->id, philo->left_hand->id);
+    philo->status = HAS_FORK;
+    write_log(philo);
     pthread_mutex_lock(&philo->right_hand->mutex);
-    printf("Philo %d took Right Hand Fork %d\n", philo->id, philo->right_hand->id);
-
+    philo->status = HAS_FORK;
+    write_log(philo);
     philo->status = EATING;
+    write_log(philo);
     philo->meals_eaten++;
     philo->last_meal = get_current_time();
     better_usleep(philo->settings->time_to_eat);
@@ -172,6 +197,7 @@ void sleeping(t_philo *philo)
 {
     philo->status = SLEEPING;
     better_usleep(philo->settings->time_to_sleep);
+    write_log(philo);
 }
 
 void thinking(t_philo *philo)
@@ -235,7 +261,7 @@ int main()
     t_philo     *philos;
     t_fork      *forks;
 
-    settings = set_settings(5, 100, 100, 10, -1);
+    settings = set_settings(5, 100, 100, 10000, -1);
     forks = create_forks(&settings);
     if (!forks)
     {
